@@ -7,7 +7,7 @@ import timelinePath from "../assets/timeline-path.svg";
 import MapPinIcon from "../icons/MapPinIcon";
 import FileIcon from "../icons/FileIcon";
 import ApprovalIcon from "../icons/ApprovalIcon";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import UploadIcon from "../icons/UploadIcon";
 import TicketsIcon from "../icons/TicketsIcon";
 import { createPortal } from "react-dom";
@@ -16,6 +16,11 @@ import SetCapacityModal from "../components/SetCapacityModal";
 import { timezones } from "../utils/data";
 import DateMobilePicker from "../components/DateMobilePicker";
 import { formatDisplayDate, formatTimeWithAmPm } from "../utils/helpers";
+import { useContract, useSendTransaction } from "@starknet-react/core";
+import { contractAbi } from "../abi/abi";
+import { contractAddress } from "../utils/address";
+import { useNavigate } from "react-router-dom";
+
 function CreateEvent() {
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [isEditingCapacity, setIsEditingCapacity] = useState(false);
@@ -29,13 +34,14 @@ function CreateEvent() {
 
   const [selectedTimezone, setSelectedTimezone] = useState("Africa/Lagos");
 
+  const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [approved, setApproved] = useState(false);
   const [regularTicketPrice, setRegularTicketPrice] = useState("");
   const [vipTicketPrice, setVipTicketPrice] = useState("");
   const [capacity, setCapacity] = useState("");
-
+  const navigate = useNavigate();
   useEffect(() => {
     const currentDate = new Date();
 
@@ -65,6 +71,35 @@ function CreateEvent() {
     setCapacity(capacity);
     setIsEditingCapacity(false);
   }
+
+  const { contract } = useContract({
+    abi: contractAbi,
+    address: contractAddress,
+  });
+
+  //TODO 6.1 - Contract Call Array
+  const calls = useMemo(() => {
+    const isInputValid = name.length > 0 && location.length > 0;
+
+    if (!isInputValid) return [];
+    return [contract.populate("add_event", [name, location])];
+  }, [contract, name, location]);
+
+  const { sendAsync: writeAsync, isSuccess } = useSendTransaction({
+    calls: calls,
+  });
+
+  async function handleSubmit() {
+    if (!name && !location) return;
+    await writeAsync();
+  }
+
+  useEffect(() => {
+    if (isSuccess) {
+      navigate("/");
+    }
+  }, [isSuccess, navigate]);
+
   return (
     <div className="min-h-[100vh] bg-primaryBackground bg-[#1E1D1D] pb-10">
       {/* Modals */}
@@ -117,10 +152,19 @@ function CreateEvent() {
           </div>
 
           <div className="flex justify-between items-center mt-10 w-full mb-3">
-            <h3 className="text-sm lg:text-xl font-medium text-white">
-              Event Name
-            </h3>
-            <div className="relative">
+            <div className="w-4/5">
+              <h3 className="text-sm lg:text-xl font-medium text-white">
+                Event Name
+              </h3>
+              <input
+                type="text"
+                className="border w-full h-[40px] bg-inherit outline-none text-white px-5"
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+              />
+            </div>
+            <div className="relative mt-8">
               <div className="absolute z-10 top-[10px] left-3 text-white">
                 <GlobeIcon />
               </div>
@@ -358,7 +402,10 @@ function CreateEvent() {
             </div>
           </div>
 
-          <button className="w-full py-3 bg-[#000000] border-white border-[0.5px] rounded-sm text-sm lg:text-xl font-regular text-white mt-6">
+          <button
+            onClick={handleSubmit}
+            className="w-full py-3 bg-[#000000] border-white border-[0.5px] rounded-sm text-sm lg:text-xl font-regular text-white mt-6"
+          >
             Create event
           </button>
         </div>

@@ -109,7 +109,7 @@ function Page({ params }) {
               {eventData.name}
             </h2>
             <div className="flex items-center">
-              <img src="/" alt="" />
+              <img src="/assets/locationIcon.svg" alt="Location Icon" className="w-10 h-10 p-2" />
               <div>
                 <h3 className="font-medium text-sm">{eventData.location}</h3>
                 <h4 className="text-[#D9D9D9] text-xs">
@@ -120,7 +120,7 @@ function Page({ params }) {
               </div>
             </div>
             <div className="flex items-center mt-4">
-              <img src="/" alt="" />
+              <img src="/assets/calender.svg" alt="Date Icon" className="w-10 h-10 p-2" />
               <div>
                 <h3 className="font-medium text-sm">
                   {eventData.event_end_date
@@ -172,7 +172,7 @@ function Page({ params }) {
             <h4 className="text-xs text-[#D9D9D9]">
               {eventData.event_start_date
                 ? new Date(eventData.event_start_date).toLocaleString()
-                : "Location details not available"}
+                : "Full Location details not available"}
             </h4>
             <img
               src="/assets/map.png"

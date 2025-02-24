@@ -1,59 +1,57 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { contractAbi } from "@/abi/abi.js";
-import { contractAddress } from "@/utils/address";
-import { useContractFetch } from "@/utils/helpers";
-import EventCard from "@/components/EventCard";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { data } from "autoprefixer";
+import EventCard from "@/components/EventCard";
 
-const events = [false, true, false, true];
+import { useQuery } from "@tanstack/react-query";
+import { useAccount } from "@starknet-react/core";
+const fetchUserEvents = async ({ queryKey }) => {
+  const { event_owner_address, page, per_page } = queryKey[0];
 
-const YourEvents = () => {
+  // Build query parameters conditionally
+  const params = new URLSearchParams();
+  if (page !== undefined && page !== null) {
+    params.append("page", page);
+  }
+  if (per_page !== undefined && per_page !== null) {
+    params.append("per_page", per_page);
+  }
+
+  const queryString = params.toString();
+
+  const url = `https://chainevents-backend.onrender.com/event/owner/${event_owner_address}${
+    queryString ? `?${queryString}` : ""
+  }`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch events");
+  }
+
+  const json = await response.json();
+
+  console.log("data", json.data.data);
+
+  return json.data.data;
+};
+
+const YourEvents = ({ page, per_page }) => {
+  const { address } = useAccount();
+
+  // const test_owner_address = "34875urijkdfrhutri4jo35u4930984";
+
   const {
-    data: eventsData,
-    isLoading,
+    data: events,
     error,
-  } = useContractFetch(contractAbi, "get_events", contractAddress, []);
-
-  console.log(data);
-
-  const [events, setEvents] = useState([]);
-
-  useEffect(() => {
-    if (eventsData) {
-      const formattedEvents = Array.isArray(eventsData)
-        ? eventsData
-        : [eventsData];
-
-      const processedEvents = formattedEvents
-        .map((event) => {
-          try {
-            return {
-              id: event.event_id?.toString().replace("n", "") || "0",
-              name: event.name || "Unknown Event",
-              location: event.location || "Unknown Location",
-              venue: `${event.total_register?.toString().replace("n", "") || "0"} registered`,
-              time: new Date().toLocaleTimeString(),
-              isGoing: false,
-              isPaid: event.event_type?.variant?.name === "Paid",
-              isClosed: event.is_closed || false,
-              totalAttendees:
-                event.total_attendees?.toString().replace("n", "") || "0",
-              paidAmount: event.paid_amount?.toString().replace("n", "") || "0",
-            };
-          } catch (err) {
-            return null;
-          }
-        })
-        .filter(Boolean);
-
-      setEvents(processedEvents);
-    }
-  }, [eventsData]);
+    isLoading,
+  } = useQuery({
+    queryKey: [{ event_owner_address: address, page, per_page }],
+    queryFn: fetchUserEvents,
+    enabled: !!address,
+  });
 
   return (
     <div className="text-white overflow-x-hidden flex flex-col items-center text-center bg-primaryBackground bg-[#1E1D1D] min-h-screen">
@@ -97,20 +95,22 @@ const YourEvents = () => {
           </button>
         </div>
         <div className="w-[740px] flex flex-col gap-y-4">
-          {isLoading ? (
-            <p className="text-white">Loading events...</p>
-          ) : error ? (
-            <p className="text-red-500">{`Failed to fetch events: ${error.message}`}</p>
-          ) : events.length > 0 ? (
+          {!address ? (
+            <p>Please connect your wallet to view your events.</p>
+          ) : isLoading ? (
+            <p className="text-white">Loading your events.</p>
+          ) : error?.message ? (
+            <p className="text-white">{error?.message}</p>
+          ) : events?.length ? (
             events.map((event, index) => (
               <EventCard key={index} event={event} baseRoute="your-events" />
             ))
           ) : (
-            <p className="text-white">No events found.</p>
+            "You dont have any events, please add one!"
           )}
-          {events.map((event, index) => (
+          {/* {events.map((event, index) => (
             <EventCard isGoing={event} key={index} baseRoute="your-events" />
-          ))}
+          ))} */}
         </div>
       </main>
       <Footer />

@@ -22,6 +22,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+
         <TanstackQueryProvider>
           <Providers>{children}</Providers>
         </TanstackQueryProvider>

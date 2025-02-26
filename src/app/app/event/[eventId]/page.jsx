@@ -1,36 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useGetEventDetails } from "../hooks/useGetEventDetails";
 
 function EventDetailsPage({ params }) {
-  const [eventData, setEventData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { eventId } = params;
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchEventDetails = async () => {
-      try {
-        const response = await fetch(`https://chainevents-backend.onrender.com/event/id/${eventId}`);
-        const result = await response.json();
+  const { data: eventData, isLoading, error } = useGetEventDetails(eventId);
 
-        if (!response.ok) throw new Error(result.message || "Failed to fetch event details");
-
-        setEventData(result.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEventDetails();
-  }, [eventId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-white">Loading event details...</div>
@@ -42,7 +23,7 @@ function EventDetailsPage({ params }) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="p-6 bg-red-100 text-red-700">
-          Error fetching event details: {error}
+          Error fetching event details: {error.message}
         </div>
       </div>
     );

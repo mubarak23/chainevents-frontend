@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { TanstackQueryProvider } from "@/components/provider/TanstackQueryProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +29,11 @@ export default function RootLayout({ children }) {
 
         <TanstackQueryProvider>
           <Providers>
-            <Navbar />
-            {children}
-            <Footer />
+            <ProtectedRoute>
+              <Navbar />
+              {children}
+              <Footer />
+            </ProtectedRoute>
             </Providers>
           <Toaster position="bottom-left" />
         </TanstackQueryProvider>

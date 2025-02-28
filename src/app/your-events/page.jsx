@@ -1,11 +1,11 @@
 "use client";
 
+import React, { Suspense, useEffect, useCallback } from 'react';
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EventCard from "@/components/EventCard";
 import Pagination from "@/components/Pagination";
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "@starknet-react/core";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
@@ -25,9 +25,8 @@ const fetchUserEvents = async ({ queryKey }) => {
   return response.json();
 };
 
-const YourEvents = () => {
+function YourEventsContent() {
   const { address } = useAccount();
-
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -35,11 +34,11 @@ const YourEvents = () => {
   const currentPage = parseInt(searchParams.get("page")) || 1;
   const perPage = 5;
 
-  const handlePageChange = (newPage) => {
-    const params = new URLSearchParams(searchParams);
+  const handlePageChange = useCallback((newPage) => {
+    const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
     router.replace(`${pathname}?${params.toString()}`);
-  }
+  }, [searchParams, router, pathname]);
 
   const { data, error, isLoading} = useQuery({
     queryKey: [{
@@ -54,13 +53,51 @@ const YourEvents = () => {
   const events = data?.data || [];
   const totalPages = data?.pagination?.totalPages || 1;
   
-  
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       handlePageChange(totalPages);
-   }
-  }, [currentPage, totalPages]);
+    }
+  }, [currentPage, totalPages, handlePageChange]);
 
+  if (!address) {
+    return <p>Please connect your wallet to view your events.</p>;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-white">{error.message}</p>;
+  }
+
+  return (
+    <>
+      {events.length ? (
+        <>
+          {events.map((event, index) => (
+            <EventCard key={index} event={event} baseRoute="your-events" />
+          ))}
+
+          {/* Pagination Component stays with the content that uses the hooks */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </>
+      ) : (
+        <p className="text-white">You don't have any events, please add one!</p>
+      )}
+    </>
+  );
+}
+
+const YourEvents = () => {
   return (
     <div className="text-white overflow-x-hidden flex flex-col items-center text-center bg-primaryBackground bg-[#1E1D1D] min-h-screen">
       <Navbar />
@@ -77,30 +114,13 @@ const YourEvents = () => {
         </div>
   
         <div className="w-[740px] flex flex-col gap-y-4">
-          {!address ? (
-            <p>Please connect your wallet to view your events.</p>
-          ) : isLoading ? (
+          <Suspense fallback={
             <div className="flex justify-center py-10">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-          ) : error ? (
-            <p className="text-white">{error.message}</p>
-          ) : events.length ? (
-            <>
-              {events.map((event, index) => (
-                <EventCard key={index} event={event} baseRoute="your-events" />
-              ))}
-  
-              {/* Pagination Component */}
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </>
-          ) : (
-            <p className="text-white">You don't have any events, please add one!</p>
-          )}
+          }>
+            <YourEventsContent />
+          </Suspense>
         </div>
       </main>
       <Footer />

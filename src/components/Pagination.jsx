@@ -66,7 +66,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       </div>
       
       <button
-        className="px-4 py-2 rounded bg-gray-700 disabled:opacity-50"
+        className="px-4 py-2 rounded bg-gray-600 disabled:opacity-50"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >

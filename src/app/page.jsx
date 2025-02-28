@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import GenericModal from "../components/GenericModal";
-import Navbar from "../components/Navbar";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useAccount } from "@starknet-react/core";
-import Footer from "../components/Footer";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import EventCard from "@/components/EventCard";
@@ -15,8 +13,7 @@ function HomePage() {
   const { address } = useAccount();
 
   return (
-    <div className="text-white overflow-x-hidden flex flex-col items-center text-center bg-primaryBackground bg-[#1E1D1D]">
-      <Navbar />
+    <div className="text-white overflow-x-hidden flex flex-col items-center text-center">
       <main className="pt-[74px] pb-[197px]">
         {!address ? (
           <div className="mt-48 lg:mt-56 px-5 mx-auto max-w-screen-lg text-center">
@@ -86,7 +83,6 @@ function HomePage() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }

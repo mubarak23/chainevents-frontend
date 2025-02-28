@@ -5,37 +5,58 @@
 @tailwind utilities;
 
 body {
-    position: relative;
+  position: relative;
 }
 
 .create-event-form label {
-    font-size: 16px;
-    font-weight: 500;
-    color: #f1e4e4;
+  font-size: 16px;
+  font-weight: 500;
+  color: #f1e4e4;
 }
 
 .create-event-form input[type="text"] {
-    width: 100%;
-    margin-top: 12px;
-    border-radius: 2px;
-    padding: 8px 12px;
-    background-color: #d9d9d9;
-    border: 1px #c4c4c4 solid;
-    color: black;
+  width: 100%;
+  margin-top: 12px;
+  border-radius: 2px;
+  padding: 8px 12px;
+  background-color: #d9d9d9;
+  border: 1px #c4c4c4 solid;
+  color: black;
 }
 
 .sidebarLinks li .active {
-    color: white;
+  color: white;
 }
 
 .sidebarLinks li a {
-    transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .sidebarLinks li a:hover {
-    background-color: #fff;
+  background-color: #fff;
 }
 
 .custom-button-bg {
-    background-color: #1E1D1D;
+  background-color: #1e1d1d;
+}
+@keyframes loadingWave {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.loading-gradient {
+  background: linear-gradient(
+    90deg,
+    #f0e1b8,
+    #e4cfa0,
+    #d8bc88,
+    #e4cfa0,
+    #f0e1b8
+  );
+  background-size: 200% 100%;
+  animation: loadingWave 4s infinite linear;
 }
